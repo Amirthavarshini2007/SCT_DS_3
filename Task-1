@@ -1,0 +1,48 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from google.colab import files
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+uploaded = files.upload()
+df = pd.read_csv('bank-additional.csv', sep=',')
+print('DataFrame Head:')
+display(df.head())
+print('\nDataFrame Info:')
+df.info()
+label_encoders = {}
+for col in df.select_dtypes(include='object').columns:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col])
+    label_encoders[col] = le
+print('\nDataFrame after Label Encoding:')
+display(df.head())
+X = df.drop('y', axis=1)
+y = df['y']
+print("Feature matrix shape:", X.shape)
+print("Target shape:", y.shape)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42)
+print("\nTraining samples:", X_train.shape[0])
+print("Testing samples:", X_test.shape[0])
+dt_model = DecisionTreeClassifier(
+    criterion='gini',
+    max_depth=5,
+    random_state=42)
+dt_model.fit(X_train, y_train)
+print("Decision Tree model trained successfully")
+y_pred = dt_model.predict(X_test)
+print('First 10 predictions:', y_pred[:10])
+print("\nAccuracy:", accuracy_score(y_test, y_pred))
+print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+plt.figure(figsize=(24, 12))
+plot_tree(
+    dt_model,
+    feature_names=X.columns,
+    class_names=['No Purchase', 'Purchase'],
+    filled=True,
+    rounded=True)
+plt.title('Decision Tree Visualization (Max Depth = 5)')
+plt.show()
